@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Entrevistas</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .requisitos-list {
+            list-style-type: none;
+        }
+        
+        .requisitos-list li {
+            margin-bottom: 10px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .requisitos-list li:before {
+            content: "✓";
+            color: var(--success-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        .select-container {
+            margin: 20px 0;
+        }
+        
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background-color: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+            transition: var(--transition);
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Simulador de Entrevistas</h1>
+            <p>Prepárate para tu próximo desafío profesional</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Introducción al Simulador</h2>
+                <p>Bienvenido a nuestro simulador de entrevistas, la herramienta perfecta para prepararte y mejorar tus habilidades para entrevistas de trabajo. Con esta plataforma podrás practicar en un entorno seguro y realista, recibir feedback inmediato y ganar confianza para tu próxima entrevista real.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Requisitos</h2>
+                <ul class="requisitos-list">
+                    <li>Dispositivo con conexión a internet</li>
+                    <li>Micrófono para respuestas de voz (opcional)</li>
+                    <li>Navegador web actualizado</li>
+                    <li>Deseo de mejorar tus habilidades</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Selección de Tema</h2>
+                <p>Elige el área en la que deseas practicar:</p>
+                
+                <div class="select-container">
+                    <select id="temaSelect">
+                        <option value="" disabled selected>Selecciona un tema</option>
+                        <option value="tecnologia">Tecnología y Desarrollo</option>
+                        <option value="marketing">Marketing Digital</option>
+                        <option value="finanzas">Finanzas y Contabilidad</option>
+                        <option value="recursos-humanos">Recursos Humanos</option>
+                        <option value="ventas">Ventas y Atención al Cliente</option>
+                        <option value="gerencial">Puestos Gerenciales</option>
+                        <option value="general">Entrevista General</option>
+                    </select>
+                </div>
+                
+                <button id="inicioBtn" class="btn">Comenzar Simulación</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Simulador de Entrevistas. Todos los derechos reservados.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const temaSelect = document.getElementById('temaSelect');
+            const inicioBtn = document.getElementById('inicioBtn');
+            
+            // Validar selección antes de iniciar
+            inicioBtn.addEventListener('click', function() {
+                if (!temaSelect.value) {
+                    alert('Por favor, selecciona un tema para continuar.');
+                    temaSelect.focus();
+                    return;
+                }
+                
+                // Aquí iría la lógica para redirigir a la página de simulación
+                // Por ahora solo mostraremos un mensaje
+                alert(`¡Simulación de ${temaSelect.options[temaSelect.selectedIndex].text} iniciada!`);
+                
+                // En una implementación real, redirigiríamos a la página de simulación:
+                // window.location.href = `simulacion.html?tema=${temaSelect.value}`;
+            });
+            
+            // Efecto visual al pasar el ratón sobre las opciones
+            const options = temaSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                options[i].addEventListener('mouseover', function() {
+                    this.style.backgroundColor = '#f0f4ff';
+                });
+                
+                options[i].addEventListener('mouseout', function() {
+                    this.style.backgroundColor = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
