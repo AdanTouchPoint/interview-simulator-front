@@ -1,8 +1,9 @@
 //gebnerate fetch  function post request to the endpoint /creaate-session
 import { UserData } from '@/app/page';
 export async function createSession(userData: UserData| null) {
+const API_ROUTE = process.env.NEXT_PUBLIC_URL || 'http://localhost:8080/dashBoardContent';
    try {
-        const response = await fetch('http://localhost:8080/dashBoardContent/create-session', {
+        const response = await fetch(`${API_ROUTE}/create-session`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
