@@ -2,10 +2,9 @@
 
 import { useState, FormEvent } from 'react';
 import { User, Building, Briefcase, Factory, PlayCircle, MessageSquare } from 'lucide-react';
-
 // Define the component's props interface
 interface IntroSimProps {
-  onCompletion: (userData: { name: string; company: string; position: string; sector: string }) => void;
+  onCompletion: (userData: { nombre: string; empresa: string; cargo: string; sector: string }) => void;
 }
 
 const IntroSim = ({ onCompletion }: IntroSimProps) => {
@@ -16,15 +15,11 @@ const IntroSim = ({ onCompletion }: IntroSimProps) => {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        
         if (!name || !sector) {
             alert('Por favor, completa los campos obligatorios: Nombre y Sector');
             return;
         }
-        
-        const userData = { name, company, position, sector };
-        localStorage.setItem('userData', JSON.stringify(userData));
-        
+        const userData = { nombre: name, empresa: company, cargo: position, sector: sector }
         // Call the callback function passed via props
         onCompletion(userData);
     };
@@ -43,7 +38,6 @@ const IntroSim = ({ onCompletion }: IntroSimProps) => {
                         Completa tus datos para personalizar la experiencia
                     </p>
                 </div>
-                
                 <form onSubmit={handleSubmit}>
                     <div className="mb-5">
                         <label htmlFor="name" className="flex items-center mb-2 font-semibold text-gray-700">

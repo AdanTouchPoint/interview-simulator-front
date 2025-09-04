@@ -5,13 +5,14 @@ import IntroSim from './components/IntroSim';
 import InterviewSim from './components/InterviewSim';
 import InterviewSimApp from './components/InterviewSimApp';
 import InterviewThankYou from './components/InterviewThankYou';
-
+import { createSession } from  "./lib/petitions";
 // Define a type for the user data
-type UserData = {
-  name: string;
-  company: string;
-  position: string;
+export type UserData = {
+  nombre: string;
+  empresa: string;
+  cargo: string;
   sector: string;
+  sessionId?: string;
 };
 
 // Define the steps of the application flow
@@ -29,8 +30,13 @@ export default function Home() {
   };
 
   // 2. Called when the user clicks "Start Simulation" on the welcome screen
-  const handleStartSimulation = (selectedTopic: string) => {
+  const handleStartSimulation =  async (selectedTopic: string) => {
     setTopic(selectedTopic);
+    const sessions = await createSession(userData)
+    console.log(sessions)
+    if (sessions || sessions.data) {
+      setUserData({...userData, sessionId: sessions.data.id} as UserData)
+    }
     setStep('simulation');
   };
 
@@ -55,7 +61,7 @@ export default function Home() {
         if (userData) {
           return (
             <InterviewSim 
-              userName={userData.name} 
+              userName={userData.nombre} 
               initialTopic={userData.sector}
               onStartSimulation={handleStartSimulation} 
             />
