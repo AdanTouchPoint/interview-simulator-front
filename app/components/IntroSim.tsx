@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from 'react';
 import { User, Building, Briefcase, Factory, PlayCircle, MessageSquare } from 'lucide-react';
-// Define the component's props interface
 interface IntroSimProps {
   onCompletion: (userData: { nombre: string; empresa: string; cargo: string; sector: string }) => void;
 }

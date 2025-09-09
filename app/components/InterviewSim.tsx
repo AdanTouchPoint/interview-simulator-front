@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
-
 // Define the props interface including the onStartSimulation callback
 interface InterviewSimProps {
     userName: string;
