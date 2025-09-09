@@ -43,27 +43,7 @@ const InterviewSim = ({ userName, initialTopic, onStartSimulation }: InterviewSi
                     </p>
                 </section>
                 
-                <section className="mb-8">
-                    <h2 className="text-blue-700 text-2xl font-semibold mb-4 pb-2 border-b-2 border-gray-200">
-                        Tema de la Entrevista
-                    </h2>
-                    {/* This dropdown can be used to confirm or change the topic */}
-                    <select 
-                        value={selectedTopic}
-                        onChange={(e) => setSelectedTopic(e.target.value)}
-                        className="w-full p-3 border-2 border-gray-200 rounded-lg transition duration-300 focus:outline-none focus:border-blue-600 bg-white"
-                    >
-                        <option value="tecnologia">Tecnología y Desarrollo</option>
-                        <option value="marketing">Marketing Digital</option>
-                        <option value="finanzas">Finanzas y Contabilidad</option>
-                        <option value="recursos-humanos">Recursos Humanos</option>
-                        <option value="ventas">Ventas y Atención al Cliente</option>
-                        <option value="gerencial">Puestos Gerenciales</option>
-                        <option value="educacion">Educación</option>
-                        <option value="salud">Salud</option>
-                        <option value="otros">Otro sector</option>
-                    </select>
-                </section>
+
 
                 <section>
                     <button onClick={handleStart} className="mt-6 block w-full p-4 bg-gradient-to-r from-blue-600 to-purple-800 text-white rounded-xl text-lg font-semibold cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled={!selectedTopic}>

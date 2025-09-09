@@ -13,6 +13,7 @@ import {
     Maximize,
     RotateCw,
     Square,
+    PauseIcon,
 } from 'lucide-react';
 
 interface InterviewSimAppProps {
@@ -46,6 +47,8 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [timeLeft, setTimeLeft] = useState(150);
     const [isRecording, setIsRecording] = useState(false);
+    const [isCameraReady, setIsCameraReady] = useState(false);
+    const [isTimerActive, setIsTimerActive] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const questions = questionsDb[topic] || questionsDb['tecnologia'];
@@ -53,12 +56,12 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
 
     // Timer effect
     useEffect(() => {
-        if (timeLeft <= 0) return;
+        if (timeLeft <= 0 || !isTimerActive) return;
         const timerInterval = setInterval(() => {
             setTimeLeft(prev => prev - 1);
         }, 1000);
         return () => clearInterval(timerInterval);
-    }, [timeLeft]);
+    }, [timeLeft, isTimerActive]);
 
     // Camera effect
     useEffect(() => {
@@ -67,18 +70,35 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
                 .then((stream) => {
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
+                        setIsCameraReady(true);
                     }
                 })
-                .catch(err => console.error("Error accessing camera: ", err));
+                .catch(err => {
+                    console.error("Error accessing camera: ", err);
+                    alert("No se pudo acceder a la cámara. Por favor, asegúrate de que los permisos están concedidos.");
+                });
         }
     }, []);
 
-    const resetTimer = () => setTimeLeft(150);
+    const resetSimulationState = () => {
+        setTimeLeft(150);
+        setIsRecording(false);
+        setIsTimerActive(false);
+    };
+
+    const handleStartSimulation = () => {
+        if (isCameraReady) {
+            setIsRecording(true);
+            setIsTimerActive(true);
+        } else {
+            alert("La cámara no está activa. Por favor, concede los permisos y asegúrate de que está funcionando.");
+        }
+    };
 
     const handleNext = () => {
         if (currentQuestionIndex < totalQuestions - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
-            resetTimer();
+            resetSimulationState();
         } else {
             alert("¡Has completado todas las preguntas!");
             onFinish();
@@ -88,7 +108,7 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
     const handlePrev = () => {
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(prev => prev - 1);
-            resetTimer();
+            resetSimulationState();
         }
     };
 
@@ -199,10 +219,11 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
                                     <VolumeX />
                                 </button>
                                 <button
-                                    onClick={() => setIsRecording(!isRecording)}
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${isRecording ? 'bg-red-500' : 'bg-blue-600'}`}
+                                    onClick={() => setIsTimerActive(prev => !prev)}
+                                    disabled={!isRecording}
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? (isTimerActive ? 'bg-red-500' : 'bg-yellow-500') : 'bg-blue-600'}`}
                                 >
-                                    {isRecording ? <Square className="text-white" /> : <Circle className="text-white" />}
+                                    {isTimerActive ? <PauseIcon className="text-white" /> : <Circle className="text-white" />}
                                 </button>
                                 <button className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform">
                                     <Maximize />
@@ -211,8 +232,8 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
                         </div>
                         
                         <div className="flex gap-4">
-                            <button onClick={resetTimer} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                                <RotateCw size={20} /> Reintentar
+                            <button onClick={handleStartSimulation} disabled={isTimerActive} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <Video size={20} /> Iniciar Grabación
                             </button>
                             <button onClick={onFinish} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <Square size={20} /> Finalizar
