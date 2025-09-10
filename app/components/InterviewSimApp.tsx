@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     MessageSquare,
     HelpCircle,
@@ -15,10 +15,14 @@ import {
     Square,
     PauseIcon,
 } from 'lucide-react';
+import { updateSession } from '@/app/lib/petitions';
+import { UserData } from '@/app/page';
 
 interface InterviewSimAppProps {
     topic: string;
     onFinish: () => void;
+    userData: UserData | null;
+    setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
 }
 
 const questionsDb: { [key: string]: string[] } = {
@@ -43,13 +47,19 @@ const questionsDb: { [key: string]: string[] } = {
     ],
 };
 
-const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
+const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSimAppProps) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [timeLeft, setTimeLeft] = useState(150);
     const [isRecording, setIsRecording] = useState(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
     const [isTimerActive, setIsTimerActive] = useState(false);
+    const [logs, setLogs] = useState<string[]>([]);
     const videoRef = useRef<HTMLVideoElement>(null);
+
+    const addLog = useCallback((action: string) => {
+        const newLog = `${new Date().toLocaleString()}: ${action}`;
+        setLogs(prevLogs => [...prevLogs, newLog]);
+    }, []);
 
     const questions = questionsDb[topic] || questionsDb['tecnologia'];
     const totalQuestions = questions.length;
@@ -65,20 +75,23 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
 
     // Camera effect
     useEffect(() => {
+        addLog("Simulación iniciada, activando cámara.");
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then((stream) => {
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
                         setIsCameraReady(true);
+                        addLog("Cámara activada exitosamente.");
                     }
                 })
                 .catch(err => {
                     console.error("Error accessing camera: ", err);
+                    addLog("Error: No se pudo acceder a la cámara.");
                     alert("No se pudo acceder a la cámara. Por favor, asegúrate de que los permisos están concedidos.");
                 });
         }
-    }, []);
+    }, [addLog]);
 
     const resetSimulationState = () => {
         setTimeLeft(150);
@@ -87,25 +100,59 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
     };
 
     const handleStartSimulation = () => {
+        addLog("Click: Iniciar Grabación");
         if (isCameraReady) {
             setIsRecording(true);
             setIsTimerActive(true);
+            addLog("Grabación y temporizador iniciados.");
         } else {
+            addLog("Error: Intento de iniciar grabación sin cámara lista.");
             alert("La cámara no está activa. Por favor, concede los permisos y asegúrate de que está funcionando.");
         }
     };
 
+    const handlePauseResume = () => {
+        addLog(`Click: ${isTimerActive ? 'Pausar' : 'Reanudar'} Temporizador`);
+        setIsTimerActive(prev => !prev);
+    };
+
+    const handleFinish = async () => {
+        addLog("Click: Finalizar Simulación");
+
+        if (userData) {
+            const updatedUserData = {
+                ...userData,
+                logs: logs
+            };
+            
+            setUserData(updatedUserData);
+
+            try {
+                addLog("Enviando datos de la sesión al servidor.");
+                await updateSession(updatedUserData);
+                addLog("Datos de la sesión actualizados exitosamente.");
+            } catch (error) {
+                addLog("Error: no se pudieron actualizar los datos de la sesión.");
+                console.error("Failed to update session:", error);
+                alert("Hubo un error al guardar tu sesión. Por favor, inténtalo de nuevo.");
+            }
+        } else {
+            addLog("Error: userData no disponible para finalizar la sesión.");
+        }
+
+        onFinish();
+    };
+
     const handleNext = () => {
+        addLog(`Click: Siguiente Pregunta (pregunta actual: ${currentQuestionIndex + 1})`);
         if (currentQuestionIndex < totalQuestions - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
             resetSimulationState();
-        } else {
-            alert("¡Has completado todas las preguntas!");
-            onFinish();
         }
     };
 
     const handlePrev = () => {
+        addLog(`Click: Pregunta Anterior (pregunta actual: ${currentQuestionIndex + 1})`);
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(prev => prev - 1);
             resetSimulationState();
@@ -195,11 +242,29 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
                                     </button>
                                     <button 
                                         onClick={handleNext} 
-                                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                                        disabled={currentQuestionIndex === totalQuestions - 1}
+                                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Siguiente <ArrowRight size={20} />
                                     </button>
                                 </div>
+                            </div>
+                            {/* Logs Section */}
+                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                <details className="bg-gray-50 rounded-lg">
+                                    <summary className="px-4 py-2 font-semibold text-gray-600 cursor-pointer hover:bg-gray-100 rounded-t-lg">
+                                        Ver Registro de Actividad
+                                    </summary>
+                                    <div className="p-2 border-t border-gray-200">
+                                        <div className="max-h-32 overflow-y-auto p-2 bg-white rounded-b-lg">
+                                            {logs.length > 0 ? logs.slice().reverse().map((log, index) => (
+                                                <p key={index} className="text-xs text-gray-700 font-mono whitespace-pre-wrap">
+                                                    {log}
+                                                </p>
+                                            )) : <p className="text-xs text-gray-500">No hay actividad registrada.</p>}
+                                        </div>
+                                    </div>
+                                </details>
                             </div>
                         </div>
                     </div>
@@ -215,17 +280,17 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
                                 </div>
                             </div>
                             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
-                                <button className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform">
+                                <button onClick={() => addLog('Click: Silenciar/Activar Sonido')} className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform">
                                     <VolumeX />
                                 </button>
                                 <button
-                                    onClick={() => setIsTimerActive(prev => !prev)}
+                                    onClick={handlePauseResume}
                                     disabled={!isRecording}
                                     className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? (isTimerActive ? 'bg-red-500' : 'bg-yellow-500') : 'bg-blue-600'}`}
                                 >
                                     {isTimerActive ? <PauseIcon className="text-white" /> : <Circle className="text-white" />}
                                 </button>
-                                <button className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform">
+                                <button onClick={() => addLog('Click: Maximizar Video')} className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform">
                                     <Maximize />
                                 </button>
                             </div>
@@ -235,7 +300,7 @@ const InterviewSimApp = ({ topic, onFinish }: InterviewSimAppProps) => {
                             <button onClick={handleStartSimulation} disabled={isTimerActive} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <Video size={20} /> Iniciar Grabación
                             </button>
-                            <button onClick={onFinish} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <button onClick={handleFinish} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <Square size={20} /> Finalizar
                             </button>
                         </div>
