@@ -6,6 +6,7 @@ import InterviewSim from './components/InterviewSim';
 import InterviewSimApp from './components/InterviewSimApp';
 import InterviewThankYou from './components/InterviewThankYou';
 import { createSession } from  "./lib/petitions";
+
 // Define a type for the user data
 export type UserData = {
   nombre: string;
@@ -13,6 +14,7 @@ export type UserData = {
   cargo: string;
   sector: string;
   sessionId?: string;
+  logs?: string[];
 };
 
 // Define the steps of the application flow
@@ -32,10 +34,9 @@ export default function Home() {
   // 2. Called when the user clicks "Start Simulation" on the welcome screen
   const handleStartSimulation =  async (selectedTopic: string) => {
     setTopic(selectedTopic);
-    const sessions = await createSession(userData)
-    console.log(sessions)
-    if (sessions || sessions.data) {
-      setUserData({...userData, sessionId: sessions.data.id} as UserData)
+    const sessions = await createSession(userData);
+    if (userData && sessions && sessions.data) {
+      setUserData({...userData, sessionId: sessions.data.id});
     }
     setStep('simulation');
   };
@@ -69,7 +70,12 @@ export default function Home() {
         }
         return null; // Or a loading/error state
       case 'simulation':
-        return <InterviewSimApp topic={topic} onFinish={handleSimulationFinish} />;
+        return <InterviewSimApp 
+                  topic={topic} 
+                  onFinish={handleSimulationFinish} 
+                  userData={userData}
+                  setUserData={setUserData}
+                />;
       case 'thankyou':
         return <InterviewThankYou onRestart={handleRestart} />;
       default:
