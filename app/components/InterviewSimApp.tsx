@@ -15,9 +15,9 @@ import {
     Square,
     PauseIcon,
 } from 'lucide-react';
-import { updateSession,startMediaUpload } from '@/app/lib/petitions';
+import { updateSession,startMediaUpload,uploadFileToGCS,completeUploadProcess } from '@/app/lib/petitions';
 import { UserData } from '@/app/page';
-import { start } from 'repl';
+
 
 interface InterviewSimAppProps {
     topic: string;
@@ -59,43 +59,58 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const recordedChunksRef = useRef<Blob[]>([]);
 
-    const uploadRecording = async () => {
-        if (recordedChunksRef.current.length === 0) {
-            addLog("No hay grabación para subir.");
-            return;
-        }
+   const uploadRecording = async () => {
+    // Asumimos que estas variables vienen de tu estado o props
+    // const { userData, recordedChunksRef, addLog, setUploadProgress } = this.props;
 
-        addLog("Ensamblando grabación a partir de los fragmentos.");
+    if (recordedChunksRef.current.length === 0) {
+        addLog("No hay grabación para subir.");
+        return;
+    }
+
+    try {
+        addLog("Preparando la subida...");
+      
+        // --- PASO 1: LLAMAR AL ENDPOINT /START ---
+        const mediaInfo = {
+            id: userData?.sessionId,
+            fileType: "video/webm",
+            fileName: `recording-${userData?.sessionId || 'default'}.webm`
+        };
+        const startResponse = await startMediaUpload(mediaInfo); // Llama a tu API /start
+        const { sessionUri, videoId } = startResponse;
+
+        if (!sessionUri || !videoId) {
+            throw new Error("Respuesta inválida del endpoint /start");
+        }
+        
+        // --- PASO 2: SUBIR EL ARCHIVO DIRECTAMENTE A GCS ---
+        addLog("Ensamblando y subiendo grabación a Google Cloud...");
         const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-        const file = new File([blob], `recording-${userData?.sessionId || 'default'}.webm`, { type: "video/webm" });
+        
+        // La subida directa usa el Blob, no FormData
+        const uploadSuccess = await uploadFileToGCS(sessionUri, blob);
 
-        const formData = new FormData();
-        formData.append("video", file);
-        if (userData?.sessionId) {
-            formData.append("sessionId", userData.sessionId);
+        if (!uploadSuccess) {
+            throw new Error("La subida a Google Cloud Storage falló.");
         }
 
-        try {
-            addLog("Subiendo grabación al servidor...");
-            const response = await startMediaUpload(formData);
+        // --- PASO 3: LLAMAR AL ENDPOINT /COMPLETE ---
+        addLog("Notificando al servidor la finalización de la subida...");
+        await completeUploadProcess( videoId ); // Llama a tu API /complete
 
-            if (response.ok) {
-                addLog("Grabación subida exitosamente.");
-            } else {
-                const errorData = await response.json();
-                addLog(`Error al subir la grabación: ${errorData.error || 'Error desconocido'}`);
-                console.error("Failed to upload recording:", errorData);
-                alert("Hubo un error al subir tu grabación. Por favor, inténtalo de nuevo.");
-            }
-        } catch (error) {
-            addLog("Error de red o de servidor al subir la grabación.");
-            console.error("Network or server error during upload:", error);
-            alert("Hubo un problema de conexión al subir tu grabación.");
-        } finally {
-            // Limpiar los chunks después de subirlos
-            recordedChunksRef.current = [];
-        }
-    };
+        addLog("¡Proceso de subida completado con éxito!");
+        alert("¡Subida completada! Tu video se está procesando.");
+
+    } catch (error) {
+        addLog(`Error en el proceso de subida: ${error}`);
+        console.error("Error en uploadRecording:", error);
+        alert("Hubo un problema al subir tu grabación. Por favor, inténtalo de nuevo.");
+    } finally {
+        // Limpiar los chunks después de un intento exitoso o fallido
+        recordedChunksRef.current = [];
+    }
+};
 
     const addLog = useCallback((action: string) => {
         const newLog = `${new Date().toLocaleString()}: ${action}`;
