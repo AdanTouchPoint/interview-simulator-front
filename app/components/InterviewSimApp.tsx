@@ -25,7 +25,10 @@ interface InterviewSimAppProps {
     userData: UserData | null;
     setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
 }
-
+export interface VideoData {
+    name: string;
+    type: string;
+}
 const questionsDb: { [key: string]: string[] } = {
     "tecnologia": [
         "¿Puedes describir un proyecto desafiante en el que hayas trabajado y cómo superaste los obstáculos?",
@@ -72,12 +75,11 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
         addLog("Preparando la subida...");
       
         // --- PASO 1: LLAMAR AL ENDPOINT /START ---
-        const mediaInfo = {
-            id: userData?.sessionId,
-            fileType: "video/webm",
-            fileName: `recording-${userData?.sessionId || 'default'}.webm`
+        const mediaInfo : VideoData = {
+            type: "video/webm",
+            name: `recording-${userData?.sessionId || 'default'}.webm`
         };
-        const startResponse = await startMediaUpload(mediaInfo); // Llama a tu API /start
+        const startResponse = await startMediaUpload( mediaInfo ); // Llama a tu API /start
         const { sessionUri, videoId } = startResponse;
 
         if (!sessionUri || !videoId) {

@@ -1,4 +1,5 @@
 import { UserData } from '@/app/page';
+import { VideoData } from '../components/InterviewSimApp';
 const API_ROUTE = process.env.NEXT_PUBLIC_URL || 'http://localhost:8080/dashBoardContent';
 export async function createSession(userData: UserData| null) {
 
@@ -39,7 +40,7 @@ export async function updateSession(userData: UserData| null) {
     }
 }
 
-export async function startMediaUpload(data: any){
+export async function startMediaUpload(data:VideoData) {
    try {
         const response = await fetch(`${API_ROUTE}/start`, {
             method: 'POST',
@@ -110,6 +111,7 @@ export async function uploadFileToGCS(sessionUri: string, videoFile: File | Blob
 
   } catch (error) {
     console.error('Error durante la subida por chunks:', error);
+
     return false;
   }
 }
