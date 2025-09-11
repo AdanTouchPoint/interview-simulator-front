@@ -15,8 +15,9 @@ import {
     Square,
     PauseIcon,
 } from 'lucide-react';
-import { updateSession } from '@/app/lib/petitions';
+import { updateSession,startMediaUpload } from '@/app/lib/petitions';
 import { UserData } from '@/app/page';
+import { start } from 'repl';
 
 interface InterviewSimAppProps {
     topic: string;
@@ -55,6 +56,46 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
     const [isTimerActive, setIsTimerActive] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recordedChunksRef = useRef<Blob[]>([]);
+
+    const uploadRecording = async () => {
+        if (recordedChunksRef.current.length === 0) {
+            addLog("No hay grabación para subir.");
+            return;
+        }
+
+        addLog("Ensamblando grabación a partir de los fragmentos.");
+        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+        const file = new File([blob], `recording-${userData?.sessionId || 'default'}.webm`, { type: "video/webm" });
+
+        const formData = new FormData();
+        formData.append("video", file);
+        if (userData?.sessionId) {
+            formData.append("sessionId", userData.sessionId);
+        }
+
+        try {
+            addLog("Subiendo grabación al servidor...");
+            const response = await startMediaUpload(formData);
+
+            if (response.ok) {
+                addLog("Grabación subida exitosamente.");
+            } else {
+                const errorData = await response.json();
+                addLog(`Error al subir la grabación: ${errorData.error || 'Error desconocido'}`);
+                console.error("Failed to upload recording:", errorData);
+                alert("Hubo un error al subir tu grabación. Por favor, inténtalo de nuevo.");
+            }
+        } catch (error) {
+            addLog("Error de red o de servidor al subir la grabación.");
+            console.error("Network or server error during upload:", error);
+            alert("Hubo un problema de conexión al subir tu grabación.");
+        } finally {
+            // Limpiar los chunks después de subirlos
+            recordedChunksRef.current = [];
+        }
+    };
 
     const addLog = useCallback((action: string) => {
         const newLog = `${new Date().toLocaleString()}: ${action}`;
@@ -101,7 +142,19 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
 
     const handleStartSimulation = () => {
         addLog("Click: Iniciar Grabación");
-        if (isCameraReady) {
+        if (isCameraReady && videoRef.current?.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+            mediaRecorderRef.current.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorderRef.current.onstop = uploadRecording;
+
+            mediaRecorderRef.current.start(10000); // Grabar en chunks de 10 segundos
             setIsRecording(true);
             setIsTimerActive(true);
             addLog("Grabación y temporizador iniciados.");
@@ -113,11 +166,24 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
 
     const handlePauseResume = () => {
         addLog(`Click: ${isTimerActive ? 'Pausar' : 'Reanudar'} Temporizador`);
+        if (mediaRecorderRef.current) {
+            if (isTimerActive) {
+                mediaRecorderRef.current.pause();
+                addLog("Grabación pausada.");
+            } else {
+                mediaRecorderRef.current.resume();
+                addLog("Grabación reanudada.");
+            }
+        }
         setIsTimerActive(prev => !prev);
     };
 
     const handleFinish = async () => {
         addLog("Click: Finalizar Simulación");
+
+        if (mediaRecorderRef.current && (mediaRecorderRef.current.state === "recording" || mediaRecorderRef.current.state === "paused")) {
+            mediaRecorderRef.current.stop(); // Esto activará el evento onstop y la subida
+        }
 
         if (userData) {
             const updatedUserData = {
