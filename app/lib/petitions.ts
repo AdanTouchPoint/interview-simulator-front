@@ -1,6 +1,7 @@
 import { UserData } from '@/app/page';
 import { VideoData } from '../components/InterviewSimApp';
 const API_ROUTE = process.env.NEXT_PUBLIC_URL || 'http://localhost:8080/dashBoardContent';
+const API_SERVICES = process.env.NEXT_PUBLIC_API_SERVICES || 'http://localhost:8080/dashBoardServices';
 export async function createSession(userData: UserData| null) {
 
    try {
@@ -42,7 +43,7 @@ export async function updateSession(userData: UserData| null) {
 
 export async function startMediaUpload(data:VideoData) {
    try {
-        const response = await fetch(`${API_ROUTE}/start`, {
+        const response = await fetch(`${API_SERVICES}/start`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -118,7 +119,7 @@ export async function uploadFileToGCS(sessionUri: string, videoFile: File | Blob
 // Función que llama al endpoint /complete
 export async function completeUploadProcess(videoId: string) {
   try {
-    const response = await fetch(`${API_ROUTE}/complete`, {
+    const response = await fetch(`${API_SERVICES}/complete`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
