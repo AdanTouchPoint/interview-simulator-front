@@ -135,7 +135,7 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
     useEffect(() => {
         addLog("Simulación iniciada, activando cámara.");
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
+            navigator.mediaDevices.getUserMedia({ video: true,audio: true })
                 .then((stream) => {
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
