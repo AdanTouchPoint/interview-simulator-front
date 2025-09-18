@@ -93,6 +93,7 @@ export async function uploadFileToGCS(sessionUri: string, videoFile: File | Blob
         method: 'PUT',
         headers: {
           'Content-Range': contentRange,
+          'x-goog-resumable': 'start',
           'Content-Type': videoFile.type,
           'Content-Length': chunk.size.toString(),
         },
