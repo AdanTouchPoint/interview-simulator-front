@@ -101,20 +101,25 @@ export async function uploadFileToGCS(sessionUri: string, videoFile: File | Blob
 
       // Google responde con '308 Resume Incomplete' para confirmar que recibió el trozo.
       // Al recibir el último trozo, responde con '200 OK' o '201 Created'.
-      if (response.status !== 308 && response.status !== 200 && response.status !== 201) {
-        throw new Error(`La subida del chunk falló con estado: ${response.status}`);
-      }
+ if (response.status === 308) {
+    // Upload incompleto → seguimos con el siguiente chunk
+    start = end;
+    continue;
+  }
 
-      // Avanzamos al siguiente trozo
-      start = end;
-    }
-
-    console.log('Subida completada con éxito.');
+  if (response.status === 200) {
+    // ✅ Subida completa
+    console.log("Upload terminado con éxito en GCS.");
+    // 🚨 IMPORTANTE: NO hagas res.json() ni res.text()
     return true;
+  }
 
-  } catch (error) {
+  // Si llega aquí, hubo error
+  throw new Error(`Error subiendo chunk. Status: ${response.status}`);
+
+
+  }} catch (error) {
     console.error('Error durante la subida por chunks:', error);
-
     return false;
   }
 }

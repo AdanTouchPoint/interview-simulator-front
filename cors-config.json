@@ -1,0 +1,24 @@
+[
+  {
+    "origin": [
+      "https://interview-simulator-chi.vercel.app"
+
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "Content-Range",
+      "Authorization",
+      "X-Goog-Resumable",
+      "Access-Control-Allow-Origin"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
