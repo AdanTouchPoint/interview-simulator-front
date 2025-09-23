@@ -62,57 +62,57 @@ const InterviewSimApp = ({ topic, onFinish, userData, setUserData }: InterviewSi
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const recordedChunksRef = useRef<Blob[]>([]);
 
-   const uploadRecording = async () => {
-    // Asumimos que estas variables vienen de tu estado o props
-    // const { userData, recordedChunksRef, addLog, setUploadProgress } = this.props;
+const uploadRecording = async () => {
+  if (recordedChunksRef.current.length === 0) {
+    addLog("No hay grabación para subir.");
+    return;
+  }
 
-    if (recordedChunksRef.current.length === 0) {
-        addLog("No hay grabación para subir.");
-        return;
+  try {
+    addLog("Preparando la subida...");
+
+    // --- PASO 1: PEDIR SESIÓN DE SUBIDA ---
+    const mediaInfo: VideoData = {
+      type: "video/webm",
+      name: `recording-${userData?.sessionId || "default"}.webm`,
+    };
+    const startResponse = await startMediaUpload(mediaInfo);
+    const { sessionUri, videoId } = startResponse;
+
+    if (!sessionUri || !videoId) {
+      throw new Error("Respuesta inválida del endpoint /start");
     }
 
-    try {
-        addLog("Preparando la subida...");
-      
-        // --- PASO 1: LLAMAR AL ENDPOINT /START ---
-        const mediaInfo : VideoData = {
-            type: "video/webm",
-            name: `recording-${userData?.sessionId || 'default'}.webm`
-        };
-        const startResponse = await startMediaUpload( mediaInfo ); // Llama a tu API /start
-        const { sessionUri, videoId } = startResponse;
+    // --- PASO 2: UNIR TODOS LOS CHUNKS EN UN SOLO BLOB ---
+    addLog("Ensamblando grabación completa...");
+    const fullBlob = new Blob(recordedChunksRef.current, {
+      type: "video/webm",
+    });
 
-        if (!sessionUri || !videoId) {
-            throw new Error("Respuesta inválida del endpoint /start");
-        }
-        
-        // --- PASO 2: SUBIR EL ARCHIVO DIRECTAMENTE A GCS ---
-        addLog("Ensamblando y subiendo grabación a Google Cloud...");
-        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-        
-        // La subida directa usa el Blob, no FormData
-        const uploadSuccess = await uploadFileToGCS(sessionUri, blob);
+    // --- PASO 3: SUBIR A GCS EN CHUNKS (resumable upload) ---
+    addLog("Subiendo grabación a Google Cloud...");
+    const uploadSuccess = await uploadFileToGCS(sessionUri, fullBlob);
 
-        if (!uploadSuccess) {
-            throw new Error("La subida a Google Cloud Storage falló.");
-        }
-
-        // --- PASO 3: LLAMAR AL ENDPOINT /COMPLETE ---
-        addLog("Notificando al servidor la finalización de la subida...");
-        await completeUploadProcess( videoId ); // Llama a tu API /complete
-
-        addLog("¡Proceso de subida completado con éxito!");
-        alert("¡Subida completada! Tu video se está procesando.");
-
-    } catch (error) {
-        addLog(`Error en el proceso de subida: ${error}`);
-        console.error("Error en uploadRecording:", error);
-        alert("Hubo un problema al subir tu grabación. Por favor, inténtalo de nuevo.");
-    } finally {
-        // Limpiar los chunks después de un intento exitoso o fallido
-        recordedChunksRef.current = [];
+    if (!uploadSuccess) {
+      throw new Error("La subida a Google Cloud Storage falló.");
     }
+
+    // --- PASO 4: NOTIFICAR AL SERVIDOR ---
+    addLog("Notificando al servidor la finalización de la subida...");
+    await completeUploadProcess(videoId);
+
+    addLog("✅ ¡Proceso de subida completado con éxito!");
+    alert("¡Subida completada! Tu video se está procesando.");
+  } catch (error) {
+    addLog(`Error en el proceso de subida: ${error}`);
+    console.error("Error en uploadRecording:", error);
+    alert("Hubo un problema al subir tu grabación. Por favor, inténtalo de nuevo.");
+  } finally {
+    // Limpiar los chunks al final
+    recordedChunksRef.current = [];
+  }
 };
+
 
     const addLog = useCallback((action: string) => {
         const newLog = `${new Date().toLocaleString()}: ${action}`;
