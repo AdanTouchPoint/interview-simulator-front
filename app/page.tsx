@@ -5,6 +5,7 @@ import IntroSim from './components/IntroSim';
 import InterviewSim from './components/InterviewSim';
 import InterviewSimApp from './components/InterviewSimApp';
 import InterviewThankYou from './components/InterviewThankYou';
+import Login from './components/Login'; // Import the Login component
 import { createSession } from  "./lib/petitions";
 
 // Define a type for the user data
@@ -21,9 +22,15 @@ export type UserData = {
 type AppStep = 'intro' | 'welcome' | 'simulation' | 'thankyou';
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to manage login status
   const [step, setStep] = useState<AppStep>('intro');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [topic, setTopic] = useState('');
+
+  // Called from the Login component on successful login
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+  };
 
   // 1. Called when the intro form is completed
   const handleIntroCompletion = (data: UserData) => {
@@ -83,6 +90,12 @@ export default function Home() {
     }
   };
 
+  // If not logged in, show the Login component
+  if (!isLoggedIn) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // If logged in, show the main application
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
       {renderStep()}
