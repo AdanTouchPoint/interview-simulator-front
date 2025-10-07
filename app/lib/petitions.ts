@@ -2,6 +2,24 @@ import { UserData } from '@/app/page';
 import { VideoData } from '../components/InterviewSimApp';
 const API_ROUTE = process.env.NEXT_PUBLIC_URL || 'http://localhost:8080/dashBoardContent';
 const API_SERVICES = process.env.NEXT_PUBLIC_API_SERVICES || 'http://localhost:8080/dashBoardServices';
+
+export async function fetchUserInfo(clientId: string) {
+     try {
+        const response = await fetch(`${API_SERVICES}/autho?clientId=${clientId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('Error en la petición');
+        return await response.json();
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}
+
 export async function createSession(userData: UserData| null) {
 
    try {
