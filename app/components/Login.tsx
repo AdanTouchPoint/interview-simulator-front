@@ -1,15 +1,12 @@
 "use client";
 import { useState } from 'react';
-// Asegúrate de que tu función fetchUserInfo maneje la validación de credenciales.
-// En un caso real, la función enviaría {username, password} al servidor
-// y el servidor respondería con la información del usuario o un error de autenticación.
+
 import { fetchUserInfo } from '../lib/petitions'; 
 
 interface LoginProps {
   onLoginSuccess: () => void;
 }
 
-// Interfaz UserInfo (se mantiene)
 interface UserInfo {
   id: string;
   username: string;
@@ -42,8 +39,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         setError('User not active. Please check your email to activate.');
       }
     } catch (err: any) {
-      // Captura errores de la petición o de credenciales inválidas
-      // Se asume que fetchUserInfo lanza un error en caso de credenciales incorrectas.
       console.error("Login failed:", err);
       // Muestra un mensaje de error genérico o el mensaje específico del error
       setError(err.message || 'Login failed. Please check your credentials.');
