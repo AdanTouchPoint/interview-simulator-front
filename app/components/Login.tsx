@@ -17,33 +17,32 @@ interface UserInfo {
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  // Nuevo estado: Para manejar la carga y deshabilitar el botón
+  
   const [isLoading, setIsLoading] = useState(false);
-  // Nuevo estado: Para mostrar mensajes de error al usuario
+
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Limpia cualquier error previo
-    setIsLoading(true); // Inicia el estado de carga
+    setError(null); 
+    setIsLoading(true); 
 
     try {
-      // **CRÍTICO:** Usar await para esperar la respuesta asíncrona
-      const info = await fetchUserInfo(password); // Modifica fetchUserInfo para recibir password
-      const userInfo = info.user as UserInfo; // Asegura que info es del tipo UserInfo
+     
+      const info = await fetchUserInfo(password); 
+      const userInfo = info.user as UserInfo; 
       if (userInfo.active === true) {
-        // Éxito: Llamar a la función de éxito
+        
         onLoginSuccess(); 
       } else {
-        // Si el usuario existe pero no está activo
+       
         setError('User not active. Please check your email to activate.');
       }
     } catch (err: any) {
       console.error("Login failed:", err);
-      // Muestra un mensaje de error genérico o el mensaje específico del error
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
-      setIsLoading(false); // Detiene el estado de carga, independientemente del resultado
+      setIsLoading(false);
     }
   };
 
@@ -55,7 +54,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       >
         <h2 style={{ textAlign: 'center', color: '#333' }}>Login</h2>
         
-        {/* Muestra el mensaje de error */}
+       
         {error && (
           <p style={{ color: 'red', textAlign: 'center', border: '1px solid #f8d7da', backgroundColor: '#f8d7da', padding: '10px', borderRadius: '4px' }}>
             {error}
@@ -68,7 +67,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Username"
           required
-          // Deshabilitar el input mientras está cargando
+          
           disabled={isLoading}
           style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
@@ -78,24 +77,24 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           required
-          // Deshabilitar el input mientras está cargando
+          
           disabled={isLoading}
           style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <button 
           type="submit" 
-          // Deshabilitar el botón mientras está cargando
+         
           disabled={isLoading}
           style={{ 
             padding: '10px', 
             borderRadius: '4px', 
             border: 'none', 
-            backgroundColor: isLoading ? '#a0c7f8' : '#0070f3', // Cambia el color si está cargando
+            backgroundColor: isLoading ? '#a0c7f8' : '#0070f3', 
             color: 'white', 
             cursor: isLoading ? 'not-allowed' : 'pointer' 
           }}
         >
-          {/* Texto dinámico para el botón */}
+      
           {isLoading ? 'Logging In...' : 'Log In'}
         </button>
       </form>
