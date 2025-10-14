@@ -94,7 +94,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             cursor: isLoading ? 'not-allowed' : 'pointer' 
           }}
         >
-      
+          
           {isLoading ? 'Logging In...' : 'Log In'}
         </button>
       </form>

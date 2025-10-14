@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { updateSession,startMediaUpload,uploadFileToGCS,completeUploadProcess } from '@/app/lib/petitions';
 import { UserData } from '@/app/page';
-
+import TextReader from './TextReader'; 
 
 interface InterviewSimAppProps {
     topic: string;
@@ -282,7 +282,9 @@ const uploadRecording = async () => {
                                     {questions[currentQuestionIndex]}
                                 </p>
                             </div>
-
+                            <div>
+                                <TextReader text={questions[currentQuestionIndex]} />
+                            </div>
                             {/* Timer Section */}
                             <div className="flex justify-center items-center my-6">
                                 <div
